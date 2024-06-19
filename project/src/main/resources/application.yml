@@ -1,0 +1,24 @@
+project:
+  app:
+    jwtExpirationMs: 86400000  
+    jwtSecret: 939ec7204eda1a59c9203e50551314276d319c753cc3c0bf4319ac7f4fb5831055e533855bffb9fcdd6b5715a282f3ab116cd772b1ed351a89f67e53e6d27365
+
+server:
+  port: 8080
+spring:
+  application:
+    name: project
+  datasource:
+    password: root
+    url: jdbc:postgresql://localhost:5432/project
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  main:
+    allow-circular-references: true
+
+
