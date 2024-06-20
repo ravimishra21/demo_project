@@ -11,6 +11,8 @@ import com.project.dto.UserDto;
 import com.project.entity.ERole;
 import com.project.entity.Role;
 import com.project.entity.User;
+import com.project.exception.DataNotCreatedException;
+import com.project.exception.UserNotFoundException;
 import com.project.repository.RoleRepository;
 import com.project.repository.UserRepository;
 import com.project.security.JwtUtils;
@@ -36,12 +38,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 public class UserController {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private UserService userService;
 
@@ -57,9 +59,8 @@ public class UserController {
 	@Autowired
 	private JwtUtils jwtUtils;
 
-	@PostMapping("/users/register")
+	@PostMapping("/register")
 	public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
-
 
 		if (userRepository.existsByUsername(userDto.getUsername())) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
@@ -112,7 +113,7 @@ public class UserController {
 		}
 
 		user.setRoles(roles);
-		userRepository.save(user);
+		User savedUser = userRepository.save(user);
 
 		// Authenticate the user
 		Authentication authentication = authenticationManager
@@ -123,11 +124,15 @@ public class UserController {
 		// Generate JWT token
 		String jwt = jwtUtils.generateJwtToken(authentication);
 
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!", jwt));
+		if (savedUser.toString().length() > 0) {
+			return ResponseEntity.ok(new MessageResponse("User registered successfully!", jwt));
+		} else {
+			throw new DataNotCreatedException("User is not registered !! ");
+		}
 
 	}
 
-	@PostMapping("/users/login")
+	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UserDto userDto) {
 
 		Authentication authentication = null;
@@ -136,6 +141,7 @@ public class UserController {
 
 			authentication = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
+
 
 		} else if (userDto.getMobileNumber() != null && userDto.getMobileNumber().matches("^[0-9]{10}$")) {
 
@@ -165,23 +171,23 @@ public class UserController {
 
 					roles));
 		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+			
+			
+			
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bad credentials");
 		}
 
 	}
-	
-	
-	
+
 	@GetMapping(value = "/userDetailsById/{user_id}")
-	public User getUserDetailsById(@PathVariable Integer user_id) {
+	public ResponseEntity<?> getUserDetailsById(@PathVariable Integer user_id) {
 
-		 User user = userService.getUserDetailById(user_id);
+		User user = userService.getUserDetailById(user_id);
 
-		 return user;
+		return ResponseEntity.ok().body(user);
+
 	}
-	
-	
-	
+
 	@Transactional
 	@PutMapping(value = "/updateUser/{id}")
 	public ResponseEntity<User> updateUserById(@RequestBody User user, @PathVariable("id") Integer id) {
@@ -189,28 +195,32 @@ public class UserController {
 		try {
 			User updatedUser = userService.updateUserById(user, id);
 			return ResponseEntity.ok().body(updatedUser);
+		} catch (UserNotFoundException ex) {
+
+			throw new UserNotFoundException("This user id is not available for update !! ");
 		} catch (Exception e) {
+
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
 
-	
-	
 	@DeleteMapping(value = "/deleteUser/{id}")
-	public ResponseEntity<String> deleteUserById( @PathVariable("id") Integer id) {
+	public ResponseEntity<String> deleteUserById(@PathVariable("id") Integer id) {
 
 		try {
 			User deletedUser = userService.deleteUserById(id);
 			return ResponseEntity.ok().body("User has been deleted successfully !! ");
-		} catch (Exception e) {
+		} catch (UserNotFoundException ex) {
+
+			throw new UserNotFoundException("This user id is not available for delete !! ");
+		}
+		
+
+		catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
-
-	
-	
-	
 
 }

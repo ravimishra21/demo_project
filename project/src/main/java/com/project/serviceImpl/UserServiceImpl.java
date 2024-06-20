@@ -1,5 +1,6 @@
 package com.project.serviceImpl;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.project.entity.User;
+import com.project.exception.UserNotFoundException;
 import com.project.repository.UserRepository;
 import com.project.service.UserService;
 
@@ -24,35 +26,19 @@ public class UserServiceImpl implements UserService {
 	public User getUserDetailById(Integer user_id) {
 		// TODO Auto-generated method stub
 		
-		Optional<User> detailById = userRepository.findById(user_id);
+		 return userRepository.findById(user_id).orElseThrow(() -> new UserNotFoundException("This user id is not available !!"));
 		
-		User user = detailById.get();
-		
-		return user;
 	}
 	
 	
-	
-	private Integer id;
-	private String username;
-	private String fullName;
-	private String mobileNumber;
-	private String email;
-	private String password;
-	private String country;
-	private String state;
-	private String district;
-	private String city;
-	private String pincode;
-	private String status;
-	private String createdDate;
-	private String updatedDate;
-	private Set<String> roles;
 	 
 //	update user detail
 	public User updateUserById(User user, Integer id) {
 
-		User user2 = new User();
+		 User user2 = userRepository.findById(id)
+		            .orElseThrow(() -> new UserNotFoundException("This user is not available !!"));
+		
+//		User user2 = new User();
 
 		user2.setId(id);
 		user2.setUsername(user.getUsername());
@@ -79,9 +65,12 @@ public class UserServiceImpl implements UserService {
 	public User deleteUserById( Integer id) {
 		// TODO Auto-generated method stub
 		
+		 User user = userRepository.findById(id)
+		            .orElseThrow(() -> new UserNotFoundException("This user is not available !!"));
+		
 		userRepository.deleteById(id);
 		
-		return null;
+		return user;
 	}
 
 }

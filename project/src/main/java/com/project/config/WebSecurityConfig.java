@@ -58,10 +58,11 @@ public class WebSecurityConfig {
 		http.csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeHttpRequests(
 						auth -> auth
-						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/api/auth/userDetailsById/**").permitAll()
-						.requestMatchers("/api/auth/updateUser/**").permitAll()
-						.requestMatchers("/api/auth/deleteUser/**").permitAll()
+						.requestMatchers("/api/users/register").permitAll()
+//						.requestMatchers("/api/users/register").permitAll()
+//						.requestMatchers("/api/userDetailsById/**").permitAll()
+//						.requestMatchers("/api/updateUser/**").permitAll()
+//						.requestMatchers("/api/deleteUser/**").permitAll()
 
 						.anyRequest().authenticated());
 
