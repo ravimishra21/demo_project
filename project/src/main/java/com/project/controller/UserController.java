@@ -74,7 +74,7 @@ public class UserController {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: This phone number is already exist"));
 		}
 
-		// Create new user's account
+		// Create new user's  details
 		User user = new User(userDto.getUsername(), userDto.getFullName(), userDto.getMobileNumber(),
 				userDto.getEmail(), encoder.encode(userDto.getPassword()), userDto.getCountry(), userDto.getState(),
 				userDto.getDistrict(), userDto.getCity(), userDto.getPincode(), userDto.getStatus(),
