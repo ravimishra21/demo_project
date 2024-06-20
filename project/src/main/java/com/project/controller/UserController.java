@@ -115,7 +115,7 @@ public class UserController {
 		user.setRoles(roles);
 		User savedUser = userRepository.save(user);
 
-		// Authenticate the user
+		// Authenticate the user details 
 		Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
 
