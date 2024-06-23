@@ -15,4 +15,8 @@ public class RoleInput {
 
 	@NotBlank
 	private String role;
+	
+	
+	
+	
 }

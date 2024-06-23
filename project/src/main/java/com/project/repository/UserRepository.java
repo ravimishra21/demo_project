@@ -11,6 +11,8 @@ import com.project.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
+
+
 	Optional<User> findByUsername(String username);
 
 	Optional<User> findByEmail(String email);
@@ -24,9 +26,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 	Boolean existsByMobileNumber(String phone);
 	
 	
-//	@Query("SELECT u FROM User u WHERE u.id = :user_id")
-//	public User getUserById(@Param("user_id") Integer user_id);
-	
+
 	
 	
 	

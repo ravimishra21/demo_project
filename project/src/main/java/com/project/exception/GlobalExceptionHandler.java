@@ -37,16 +37,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 	
 	
 
-//  Exception handling for authentication
-	@ExceptionHandler(value=AuthenticationException.class)
-	public ResponseEntity<ErrorMessage> handleAuthenticationException(AuthenticationException ex , WebRequest req){
+////  Exception handling for authentication
+//	@ExceptionHandler(value=AuthenticationException.class)
+//	public ResponseEntity<ErrorMessage> handleAuthenticationException(AuthenticationException ex , WebRequest req){
+//		
+//		ErrorMessage errorMessage = new ErrorMessage(HttpStatus.UNAUTHORIZED , ex.getMessage());
+//		
+//		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+//	}
+//	
+	
+
+//  Exception handling for user not found
+	@ExceptionHandler(value=UsernameNotFoundException.class)
+	public ResponseEntity<ErrorMessage> handleUsernameNotFoundException(UsernameNotFoundException ex , WebRequest req){
 		
-		ErrorMessage errorMessage = new ErrorMessage(HttpStatus.UNAUTHORIZED , ex.getMessage());
+		ErrorMessage errorMessage = new ErrorMessage(HttpStatus.NOT_FOUND , ex.getMessage());
 		
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
 	}
-	
-	
 	
 	
 	

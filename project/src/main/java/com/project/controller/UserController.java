@@ -2,6 +2,7 @@ package com.project.controller;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,14 +11,18 @@ import com.project.dto.MessageResponse;
 import com.project.dto.UserDto;
 import com.project.entity.ERole;
 import com.project.entity.Role;
+import com.project.entity.StoreToken;
 import com.project.entity.User;
 import com.project.exception.DataNotCreatedException;
 import com.project.exception.UserNotFoundException;
+import com.project.exception.UsernameNotFoundException;
 import com.project.repository.RoleRepository;
+import com.project.repository.StoreTokenRepository;
 import com.project.repository.UserRepository;
 import com.project.security.JwtUtils;
 import com.project.service.UserService;
 import com.project.serviceImpl.UserDetailsImpl;
+import com.project.utiils.DateUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,6 +56,9 @@ public class UserController {
 	private RoleRepository roleRepository;
 
 	@Autowired
+	private StoreTokenRepository storeTokenRepository;
+
+	@Autowired
 	private PasswordEncoder encoder;
 
 	@Autowired
@@ -74,7 +82,7 @@ public class UserController {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: This phone number is already exist"));
 		}
 
-		// Create new user's  details
+		// Create new user's details
 		User user = new User(userDto.getUsername(), userDto.getFullName(), userDto.getMobileNumber(),
 				userDto.getEmail(), encoder.encode(userDto.getPassword()), userDto.getCountry(), userDto.getState(),
 				userDto.getDistrict(), userDto.getCity(), userDto.getPincode(), userDto.getStatus(),
@@ -115,14 +123,16 @@ public class UserController {
 		user.setRoles(roles);
 		User savedUser = userRepository.save(user);
 
-		// Authenticate the user details 
-		Authentication authentication = authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+		// Authenticate the user details
+//		Authentication authentication = authenticationManager
+//				.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+//
+//		SecurityContextHolder.getContext().setAuthentication(authentication);
+//
+//		// Generate JWT token
+//		String jwt = jwtUtils.generateJwtToken(authentication);
 
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// Generate JWT token
-		String jwt = jwtUtils.generateJwtToken(authentication);
+		String jwt = null;
 
 		if (savedUser.toString().length() > 0) {
 			return ResponseEntity.ok(new MessageResponse("User registered successfully!", jwt));
@@ -141,7 +151,6 @@ public class UserController {
 
 			authentication = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
-
 
 		} else if (userDto.getMobileNumber() != null && userDto.getMobileNumber().matches("^[0-9]{10}$")) {
 
@@ -162,6 +171,20 @@ public class UserController {
 			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 					.collect(Collectors.toList());
 
+			String currentDateTime = DateUtils.currentDate();
+			String tokenExpireDateTime = DateUtils.expireDateForToken(currentDateTime);
+
+			StoreToken tokenDetails = new StoreToken(jwt, userDetails.getId(), currentDateTime, tokenExpireDateTime);
+
+			Optional<StoreToken> tokenDtl = storeTokenRepository.findByUserId(userDetails.getId());
+
+			if (tokenDtl.isEmpty()) {
+
+				storeTokenRepository.save(tokenDetails);
+			} else {
+				userService.updateToken(userDetails, jwt, tokenDtl.get());
+			}
+
 			return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(),
 
 					userDetails.getUsername(), userDetails.getFullName(), userDetails.getMobileNumber(),
@@ -171,9 +194,7 @@ public class UserController {
 
 					roles));
 		} else {
-			
-			
-			
+
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bad credentials");
 		}
 
@@ -194,10 +215,15 @@ public class UserController {
 
 		try {
 			User updatedUser = userService.updateUserById(user, id);
+
 			return ResponseEntity.ok().body(updatedUser);
+
 		} catch (UserNotFoundException ex) {
 
 			throw new UserNotFoundException("This user id is not available for update !! ");
+		} catch (UsernameNotFoundException ex) {
+
+			throw new UsernameNotFoundException("This user name is not available for update !! ");
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -209,13 +235,12 @@ public class UserController {
 	public ResponseEntity<String> deleteUserById(@PathVariable("id") Integer id) {
 
 		try {
-			User deletedUser = userService.deleteUserById(id);
+			String deletedUser = userService.deleteUserById(id);
 			return ResponseEntity.ok().body("User has been deleted successfully !! ");
 		} catch (UserNotFoundException ex) {
 
 			throw new UserNotFoundException("This user id is not available for delete !! ");
 		}
-		
 
 		catch (Exception e) {
 			e.printStackTrace();
