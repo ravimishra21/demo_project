@@ -59,7 +59,7 @@ public class WebSecurityConfig {
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeHttpRequests(
 						auth -> auth
 						.requestMatchers("/api/users/register").permitAll()
-//						.requestMatchers("/api/users/register").permitAll()
+						.requestMatchers("/api/users/login").permitAll()
 //						.requestMatchers("/api/userDetailsById/**").permitAll()
 //						.requestMatchers("/api/updateUser/**").permitAll()
 //						.requestMatchers("/api/deleteUser/**").permitAll()

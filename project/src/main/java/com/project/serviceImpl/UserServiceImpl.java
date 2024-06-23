@@ -8,10 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.project.entity.StoreToken;
 import com.project.entity.User;
 import com.project.exception.UserNotFoundException;
+import com.project.repository.StoreTokenRepository;
 import com.project.repository.UserRepository;
 import com.project.service.UserService;
+import com.project.utiils.DateUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -21,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder encoder;
+	
+	@Autowired
+	private StoreTokenRepository storeTokenRepository;
 	
 	@Override
 	public User getUserDetailById(Integer user_id) {
@@ -36,6 +42,7 @@ public class UserServiceImpl implements UserService {
 	public User updateUserById(User user, Integer id) {
 
 		 User user2 = userRepository.findById(id)
+//				 .get();
 		            .orElseThrow(() -> new UserNotFoundException("This user is not available !!"));
 		
 //		User user2 = new User();
@@ -62,15 +69,45 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User deleteUserById( Integer id) {
+	public String deleteUserById( Integer id) {
 		// TODO Auto-generated method stub
 		
 		 User user = userRepository.findById(id)
 		            .orElseThrow(() -> new UserNotFoundException("This user is not available !!"));
 		
+		
 		userRepository.deleteById(id);
 		
-		return user;
+		return "User successful deleted !! ";
+	}
+
+
+
+	@Override
+	public void updateToken(UserDetailsImpl userDetails , String jwt, StoreToken tokenDtl) {
+		// TODO Auto-generated method stub
+		
+		
+		 Optional<StoreToken> findByUserId = storeTokenRepository.findByUserId(userDetails.getId());
+		 StoreToken storeToken = findByUserId.get();
+		 
+		StoreToken tokenDetail = new StoreToken();
+		if(!findByUserId.isEmpty()) {
+			tokenDetail.setId(storeToken.getId());
+			tokenDetail.setUserId(storeToken.getUserId());
+			tokenDetail.setToken(jwt);
+		}
+		
+		
+		String currentDateTime = DateUtils.currentDate();
+		String tokenExpireDateTime = DateUtils.expireDateForToken(currentDateTime);
+		
+		tokenDetail.setCreatedDate(currentDateTime);
+		tokenDetail.setExpiryDate(tokenExpireDateTime);
+
+		storeTokenRepository.save(tokenDetail);
+		
+		
 	}
 
 }
